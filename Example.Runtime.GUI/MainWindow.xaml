@@ -1,0 +1,53 @@
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:v="clr-namespace:ViDi2.UI;assembly=ViDi.NET.UI"
+        x:Class="Example.Runtime.MainWindow"
+        Title="Cognex ViDi Suite - Runtime Example" 
+        Height="494" Width="867">
+
+    <DockPanel LastChildFill="True">
+        <ToolBar DockPanel.Dock="Top">
+            <Button Content="Open" Click="open_Click"/>
+            <Separator/>
+            <Label Content="Workspace"/>
+            <ComboBox ItemsSource="{Binding Workspaces}" SelectedItem="{Binding Workspace}" DisplayMemberPath="DisplayName" MinWidth="50"/>
+            <Separator/>
+            <Label Content="Stream"/>
+            <ComboBox ItemsSource="{Binding Workspace.Streams}" SelectedItem="{Binding Stream}" DisplayMemberPath="Name" MinWidth="50"/>
+            <Separator/>
+            <Label Content="Tool"/>
+            <ComboBox ItemsSource="{Binding SampleViewerViewModel.Sample.Markings}" SelectedValue="{Binding SampleViewerViewModel.ToolName}" 
+                      SelectedValuePath="Key" DisplayMemberPath="Key" MinWidth="50"/>
+            <Separator/>
+            <Label Content="View"/>
+            <ComboBox ItemsSource="{Binding ViewIndices}" SelectedValue="{Binding SampleViewerViewModel.ViewIndex}"
+                      SelectedValuePath="Key" DisplayMemberPath="Value" MinWidth="40" />
+            <Separator/>
+        </ToolBar>
+        <Grid>
+            <Grid>
+                <v:SampleViewer Name="sampleViewer" AllowDrop="True"/>
+                <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"
+                    Foreground="Gray" FontStyle="Italic" FontSize="20">
+                    <TextBlock.Style>
+                        
+                        <Style TargetType="TextBlock">
+                            <Setter Property="IsHitTestVisible" Value="False"/>
+                            <Setter Property="Visibility" Value="Hidden"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SampleViewerViewModel.Sample}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Stream}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Hidden"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                    drag image here to process ...
+                </TextBlock>
+            </Grid>
+        </Grid>
+    </DockPanel>
+
+</Window>

@@ -1,0 +1,43 @@
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:v="clr-namespace:ViDi2.UI;assembly=ViDi.NET.UI"
+        xmlns:visionPro="clr-namespace:Cognex.VisionPro;assembly=Cognex.VisionPro.Controls"
+        x:Class="Example.VisionPro.Integration.MainWindow"
+        Title="Cognex ViDi Suite - VisionPro Integration Example" 
+        Height="494" Width="867" AllowDrop="True">
+    
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+    </Window.Resources>
+
+    <DockPanel LastChildFill="True">
+        <ToolBar DockPanel.Dock="Top">
+            <Button Content="{Binding WorkspaceName, TargetNullValue='Open Runtime Workspace'}" Click="openWorkspace_Click"/>
+            <Separator/>
+            <Button Content="{Binding ToolBlockName, TargetNullValue='Open Fixturing Tool Block'}" Click="openFixturing_Click"/>
+            <Separator/>
+            <Label Content="View" IsEnabled="{Binding HasViews}" VerticalAlignment="Center"/>
+            <ComboBox ItemsSource="{Binding Views}" SelectedValue="{Binding SelectedViewRecord}" 
+                      DisplayMemberPath="Label" SelectedValuePath="Record" MinWidth="40" 
+                      IsEnabled="{Binding HasViews}" VerticalAlignment="Center"/>
+            <Separator/>
+            <Button Content="Toggle View" Click="toggleViewButton_OnClick"
+                    VerticalAlignment="Center"
+                    IsEnabled="{Binding HasSelectedViewRecord}"/>
+            <Separator Visibility="{Binding IsReadyToProcess, Converter={StaticResource BoolToVisConverter}}"/>
+            <TextBlock Text="Drag an image over the display to process." 
+                       Visibility="{Binding IsReadyToProcess, Converter={StaticResource BoolToVisConverter}}"
+                       VerticalAlignment="Center"
+                       Margin="10, 0, 0, 0"/>
+        </ToolBar>
+        <Grid>
+            <Grid>
+                <WindowsFormsHost x:Name="WfHost"
+                                  AllowDrop="True"
+                                  VerticalAlignment="Stretch" 
+                                  HorizontalAlignment="Stretch"/>
+            </Grid>
+        </Grid>
+    </DockPanel>
+
+</Window>

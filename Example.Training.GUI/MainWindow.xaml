@@ -1,0 +1,151 @@
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vr="clr-namespace:ViDi2.UI;assembly=ViDi.NET.UI"
+        xmlns:vt="clr-namespace:ViDi2.Training.UI;assembly=ViDi.NET.UI"
+        xmlns:l="clr-namespace:ViDi2.Training.GUIExample"
+        xmlns:ui="clr-namespace:ViDi2.UI;assembly=ViDi.NET.UI.Interfaces"
+        xmlns:viewModels="clr-namespace:ViDi2.Training.UI.ViewModels;assembly=ViDi.NET.UI"
+        xmlns:ignorablePrefix="ignorableUri"  
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viDi2="clr-namespace:ViDi2;assembly=ViDi.NET.Interfaces"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        mc:Ignorable="ignorablePrefix d"
+        x:Class="ViDi2.Training.GUIExample.MainWindow"
+        Height="768" Width="1024"
+        d:DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        Title="{Binding ToolChainViewModel.Workspace.DisplayName,StringFormat=ViDi Suite - \{0\}, FallbackValue=ViDi Suite}">
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Workspace">
+                <MenuItem Command="vt:WorkspaceCommands.New" ToolTip="Creates a new empty workspace"/>
+                <Separator/>
+                <MenuItem Command="vt:WorkspaceCommands.Save" CommandParameter="{Binding ToolChainViewModel.Workspace}" ToolTip="Saves the workspace"/>
+                <MenuItem Command="vt:WorkspaceCommands.Close" CommandParameter="{Binding ToolChainViewModel.Workspace}" ToolTip="Closes the workspace"/>
+                <MenuItem Command="vt:WorkspaceCommands.Delete" CommandParameter="{Binding ToolChainViewModel.Workspace}" ToolTip="Deletes the workspace"/>
+                <Separator/>
+                <MenuItem Command="vt:WorkspaceCommands.SaveNewVersion" CommandParameter="{Binding ToolChainViewModel.Workspace}" ToolTip="Saves a new version of the workspace"/>
+                <MenuItem Command="vt:WorkspaceCommands.RevertToVersion" CommandParameter="{Binding ToolChainViewModel.Workspace}" ToolTip="Reverts to the previous version of the workspace"/>
+                <MenuItem Command="vt:WorkspaceCommands.DeleteVersion" CommandParameter="{Binding ToolChainViewModel.Workspace}" ToolTip="Deletes the workspace version"/>
+                <Separator/>
+                <MenuItem Command="vt:WorkspaceCommands.Import" CommandParameter="{Binding ToolChainViewModel.Workspace}" ToolTip="Imports a workspace archive and replaces the current workspace"/>
+                <MenuItem Command="vt:WorkspaceCommands.Export" CommandParameter="{Binding ToolChainViewModel.Workspace}" ToolTip="Exports the current workspace to an archive"/>
+                <MenuItem Command="vt:WorkspaceCommands.CreateRuntime" CommandParameter="{Binding ToolChainViewModel.Workspace}" ToolTip="Exports a runtime workspace"/>
+                <Separator/>
+                <MenuItem Command="{Binding Exit}" Header="Close" ToolTip="Exits the GUI"/>
+            </MenuItem>
+            <MenuItem Header="Tool" DataContext="{Binding ToolChainViewModel.SelectedToolPillViewModel}">
+                <MenuItem Command="{Binding TrainToolCommand}" Header="Train" ToolTip="Trains the current Tool"/>
+                <MenuItem Command="{Binding ProcessToolCommand}" Header="Process" ToolTip="Processes the current Tool"/>
+                <MenuItem Command="{Binding AbortToolCommand}" Header="Abort" ToolTip="Aborts current Task"/>
+                <MenuItem Command="{Binding ResetToolCommand}" Header="Reset" ToolTip="Resets the tool training"/>
+                <Separator/>
+                <MenuItem Command="{Binding ImportToolCommand}" Header="Import" ToolTip="Imports a tool archive and replaces current tool"/>
+                <MenuItem Command="{Binding ExportToolCommand}" Header="Export" ToolTip="Exports the current tool to a tool archive"/>
+                <Separator/>
+                <MenuItem Command="{Binding EditModelsToolCommand}" Header="Edit Models" ToolTip="Add/Edits the models"/>
+                <MenuItem Command="{Binding UpdateParametersToolCommand}" Header="Update Parameters" ToolTip="Update the tool in order to profit from the latest improvements. The result may change."/>
+            </MenuItem>
+            <MenuItem Header="Database" DataContext="{Binding DatabaseExplorerViewModel}">
+                <MenuItem Command="{Binding LabelViews}" Header="Label Views"/>
+                <MenuItem Command="{Binding SelectTrainingSet}" Header="Select Training Set"/>
+                <MenuItem Command="{Binding ClearViews}" Header="Clear Views"/>
+                <MenuItem Command="{Binding AcceptViews}" Header="Accept Views"/>
+                <Separator/>
+                <MenuItem Command="{Binding AddImages}" Header="Add Images"/>
+                <MenuItem Command="{Binding AddImagesRecursive}" Header="Add Images Recursive"/>
+                <MenuItem Command="{Binding RenameSamples}" Header="Rename Samples"/>
+                <MenuItem Command="{Binding RemoveSamples}" Header="Remove Samples"/>
+            </MenuItem>
+            <MenuItem Header="View" DataContext="{Binding ToolViewerViewModel}">
+                <MenuItem Command="{Binding AcceptView}" Header="Accept View"/>
+                <MenuItem Command="{Binding ClearMarking}" Header="Clear Marking"/>
+                <MenuItem Command="{Binding ClearMarkingAndLabels}" Header="Clear Marking And Labels"/>
+                <MenuItem Command="{Binding Process}" Header="Process"/>
+                <Separator/>
+                <MenuItem Command="{Binding EditROI}" Header="Edit ROI"/>
+                <MenuItem Command="{Binding EditMask}" Header="Edit Mask"/>
+                <MenuItem Command="{Binding ApplyMaskToTool}" Header="Apply Mask To Tool"/>
+                <MenuItem Command="{Binding Path=(viewModels:RedToolViewerViewModel.EditRegions)}" Header="Edit Regions">
+                    <MenuItem.Style>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Tool.Type}" Value="{x:Static viDi2:ToolType.Red}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </MenuItem.Style>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="Help">
+                <MenuItem Command="{Binding About}" Header="About"/>
+            </MenuItem>
+        </Menu>
+
+        <Grid>
+            <DockPanel LastChildFill="True" Margin="25,0,0,0" >
+
+                <!--The ToolChain is view-first and generates its own view model-->
+                <vt:ToolChain Name="toolChain" DockPanel.Dock="Top"/>
+
+                <DockPanel LastChildFill="True">
+                    <DockPanel.Style>
+                        <Style TargetType="DockPanel">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ToolChainViewModel.Mode}" Value="{x:Static ui:ToolChainMode.Production}">
+                                    <Setter Property="Visibility" Value="Hidden"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DockPanel.Style>
+                    <Expander ExpandDirection="Right" DockPanel.Dock="Left" HorizontalAlignment="Left" IsExpanded="False">
+                        <Expander.Header>
+                            <TextBlock FontSize="16">
+                                <TextBlock.LayoutTransform>
+                                    <RotateTransform Angle="-90"/>
+                                </TextBlock.LayoutTransform>
+                                Tool Parameters
+                            </TextBlock>
+                        </Expander.Header>
+                        <!--The DataContext for this control is a property of MainWindow.xaml.cs but could be changed to any view model-->
+                        <vt:ToolParameters Name="toolParameters" DataContext="{Binding ToolParametersViewModel}"/>
+                    </Expander>
+
+                    <Expander ExpandDirection="Left" DockPanel.Dock="Right" HorizontalAlignment="Right" IsExpanded="False">
+                        <Expander.Header>
+                            <TextBlock  FontSize="16">
+                                <TextBlock.LayoutTransform>
+                                    <RotateTransform Angle="-90"/>
+                                </TextBlock.LayoutTransform>
+                                Database Overview
+                            </TextBlock>
+                        </Expander.Header>
+                        <!--The DataContext for this control is a property of MainWindow.xaml.cs but could be changed to any view model-->
+                        <vt:DatabaseOverview Name="databaseOverview" DataContext="{Binding DatabaseOverviewViewModel}"/>
+                    </Expander>
+                    <!--The DataContext for this control is a property of MainWindow.xaml.cs but could be changed to any view model-->
+                    <vt:DatabaseExplorer Name="databaseExplorer" DataContext="{Binding DatabaseExplorerViewModel}" Width="300" DockPanel.Dock="Right"/>
+                    <vt:Viewer Name="viewer" DataContext="{Binding ViewerViewModel}" ViewKey="{Binding ElementName=databaseExplorer, Path=SelectedView}"/>
+                </DockPanel>
+
+            </DockPanel>
+
+            <Expander Name="workspaceBrowserExpander" ExpandDirection="Right"
+                  DockPanel.Dock="Left" HorizontalAlignment="Left" IsExpanded="True" HorizontalContentAlignment="Left">
+                <Expander.Header>
+                    <TextBlock FontSize="16">
+                        <TextBlock.LayoutTransform>
+                            <RotateTransform Angle="-90"/>
+                        </TextBlock.LayoutTransform>
+                        Workspaces
+                    </TextBlock>
+                </Expander.Header>
+                <!--The WorkspaceBrowser is view-first and generates its own view model which is itself (WorkspaceBrowser.xaml.cs)-->
+                <vt:WorkspaceBrowser Name="workspaceBrowser" HorizontalAlignment="Left"/>
+            </Expander>
+        </Grid>
+
+    </DockPanel>
+</Window>
