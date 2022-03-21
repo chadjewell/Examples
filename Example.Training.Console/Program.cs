@@ -13,6 +13,9 @@ using System.Collections.Generic;
 namespace Example.Training
 {
     using System;
+    using System.CodeDom;
+    using System.CodeDom.Compiler;
+    using System.Text.RegularExpressions;
     using ViDi2.Training;
 
     class Program
@@ -72,21 +75,22 @@ namespace Example.Training
 
 
             // creates a new workspace
-            var workspace = control.Workspaces.Add("workspace");
+            var workspace = control.Workspaces.Add("PBQA");
 
             //creates a stream
             var stream = workspace.Streams.Add("default");
 
             //creates a blue tool at the root of the tool chain
-            var blue = stream.Tools.Add("localize", ToolType.Blue) as IBlueTool;
+            var blue = stream.Tools.Add("Locate", ToolType.Blue) as IBlueTool;
+            
             //creates a red tool linked to the blue tool
-            var red = blue.Children.Add("analyze", ToolType.Red) as IRedTool;
+            //var red = blue.Children.Add("analyze", ToolType.Red) as IRedTool;
             //creates a green tool at the root of the toolchain
-            var green = stream.Tools.Add("classify", ToolType.Green) as IGreenTool;
+            //var green = stream.Tools.Add("classify", ToolType.Green) as IGreenTool;
 
             //loading images from local directory
             var ext = new System.Collections.Generic.List<string> { ".jpg", ".bmp", ".png" };
-            var myImagesFiles = Directory.GetFiles("../../../resources/images/", "*.*", SearchOption.AllDirectories).Where(s => ext.Any(e => s.EndsWith(e)));
+            var myImagesFiles = Directory.GetFiles("C:\\Users\\cjewell\\OneDrive - Cognex Corporation\\Documents\\P&G\\PBQA Deep Learning\\images\\all", "*.*", SearchOption.AllDirectories).Where(s => ext.Any(e => s.EndsWith(e)));
             foreach (var file in myImagesFiles)
             {
                 using (var image = new FormsImage(file))
@@ -95,37 +99,75 @@ namespace Example.Training
                 }
             }
 
+            //define file locations for all labels
+            var lblext = new System.Collections.Generic.List<string> { ".txt" };
+            var myLabelFiles = Directory.GetFiles("C:\\Users\\cjewell\\OneDrive - Cognex Corporation\\Documents\\P&G\\PBQA Deep Learning\\labels\\all", "*.*", SearchOption.AllDirectories).Where(s => lblext.Any(e => s.EndsWith(e)));
+
             //---------------BLUE TOOL----------------------
 
             //modifying the ROI
             IManualRegionOfInterest blueROI = blue.RegionOfInterest as IManualRegionOfInterest; //gets the region of interest
             //changing the angle
-            blueROI.Angle = 10.0;
+            //blueROI.Angle = 10.0;
 
             //processes all images in order to apply the ROI
             blue.Database.Process();
-            //waiting fo the end of the processing
+            //waiting for the end of the processing
             blue.Wait();
 
+            //set scaling for features
+            blue.Parameters.ScaledFeatures = true;
+            blue.Parameters.NonUniformlyScaledFeatures = true;
+
+            //get label file name, get view with file name
+            for (var i = 0; i < ((uint)myLabelFiles.Count()); i++)
+            {
+                //define directory end
+                var key = @"\all\";
+
+                //file name Index Start
+                var fileIndex = myLabelFiles.ElementAt(i).IndexOf(key) + 5;
+
+                //file length
+                var fileLength = myLabelFiles.ElementAt(i).Length;
+
+                //get file name
+                var fileName = Regex.Escape(myLabelFiles.ElementAt(i).Substring(fileIndex, myLabelFiles.ElementAt(i).Length - fileIndex - 4));
+
+                //read label data
+                var lblData = System.IO.File.ReadAllText(myLabelFiles.ElementAt(i));
+
+                //get corresponding view 
+                var view = blue.Database.List($"/{fileName}/.test(filename)").First();
+
+                //parse lbl data
+                char[] delim = { ' ', '\r', '\n' };
+                string[] parseLbl = lblData.Split(delim);
+
+                //add feature to view in database
+                blue.Database.AddFeature(view, "0", new Point(view.Size.Width * Convert.ToDouble(parseLbl[1]), view.Size.Height * Convert.ToDouble(parseLbl[2])), 0, 100);
+                blue.Database.SetFeature(view, 0, "0", new Point(view.Size.Width * Convert.ToDouble(parseLbl[1]), view.Size.Height * Convert.ToDouble(parseLbl[2])), 0, new Size(view.Size.Width * Convert.ToDouble(parseLbl[3]), view.Size.Height * Convert.ToDouble(parseLbl[4])));
+            }
+
             //get the first view in the database
-            var firstView = blue.Database.List().First();
+            //var firstView = blue.Database.List().First();
 
             //add some features to the first view in the database
-            blue.Database.AddFeature(firstView, "0", new Point(firstView.Size.Width / 2, firstView.Size.Height / 2), 0.0, 1.0);
-            blue.Database.AddFeature(firstView, "1", new Point(firstView.Size.Width / 3, firstView.Size.Height / 3), 0.0, 1.0);
+            //blue.Database.AddFeature(firstView, "0", new Point(firstView.Size.Width / 2, firstView.Size.Height / 2), 0.0, 1.0);
+            //blue.Database.AddFeature(firstView, "1", new Point(firstView.Size.Width / 3, firstView.Size.Height / 3), 0.0, 1.0);
 
             //adding a model to the blue tool
-            var model = blue.Models.Add("model1") as INodeModel;
+            //var model = blue.Models.Add("model1") as INodeModel;
             //adding some nodes in the model
-            var node = model.Nodes.Add();
-            node.Fielding = new List<string> { "1" };
-            node.Position = new Point(0.0, 0.0);
-            node = model.Nodes.Add();
-            node.Fielding = new List<string> { "0" };
-            node.Position = new Point(1.0, 0.0);
+            //var node = model.Nodes.Add();
+            //node.Fielding = new List<string> { "1" };
+            //node.Position = new Point(0.0, 0.0);
+            //node = model.Nodes.Add();
+            //node.Fielding = new List<string> { "0" };
+            //node.Position = new Point(1.0, 0.0);
 
             //changing some parameters
-            blue.Parameters.FeatureSize = new Size(30, 30);
+            //blue.Parameters.FeatureSize = new Size(30, 30);
 
             //saving the workspace
             workspace.Save();
@@ -152,7 +194,7 @@ namespace Example.Training
             }
 
             var blueSummary = blue.Database.Summary();
-
+            /*
             //---------------RED TOOL----------------------
 
             //setting the roi in the red tool. It is a IBlueRegionOfInterest because the red tool is linked to a blue tool
@@ -216,7 +258,7 @@ namespace Example.Training
             }
 
             var greenSummary = green.Database.Summary();
-
+            */
             //closing the workspaces
             foreach (var w in control.Workspaces)
             {
@@ -225,5 +267,17 @@ namespace Example.Training
             control.Dispose();
 
         }
-    }
+
+        private static string ToLiteral(string input)
+        {
+            using (var writer = new StringWriter())
+            {
+                using (var provider = CodeDomProvider.CreateProvider("CSharp"))
+                {
+                    provider.GenerateCodeFromExpression(new CodePrimitiveExpression(input), writer, null);
+                    return writer.ToString();
+                }
+            }
+        }
+    }    
 }
